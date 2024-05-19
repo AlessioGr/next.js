@@ -35,4 +35,43 @@ describe('ci-missing-typescript-deps', () => {
       await next.destroy()
     }
   })
+
+  it('should not throw an error if beta version of @types/react and @types/react-dom is installed', async () => {
+    const next = await createNext({
+      files: {
+        'pages/index.tsx': `
+          export default function Page() {
+            return <p>hello world</p>
+          }
+        `,
+      },
+      env: {
+        CI: '1',
+      },
+      skipStart: true,
+      dependencies: {
+        '@types/react': 'npm:types-react@beta',
+        '@types/react-dom': 'npm:types-react-dom@beta',
+      },
+      packageJson: {
+        overrides: {
+          '@types/react': 'npm:types-react@beta',
+          '@types/react-dom': 'npm:types-react-dom@beta',
+        },
+        pnpm: {
+          overrides: {
+            '@types/react': 'npm:types-react@beta',
+            '@types/react-dom': 'npm:types-react-dom@beta',
+          },
+        },
+      },
+    })
+    try {
+      expect(next.cliOutput).not.toContain(
+        `It looks like you're trying to use TypeScript but do not have the required package(s) installed.`
+      )
+    } finally {
+      await next.destroy()
+    }
+  })
 })
